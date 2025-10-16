@@ -1,6 +1,3 @@
-// This will be populated by a script tag in the template
-let mockReports = [];
-
 // --- Utility Functions ---
 
 function formatUsernameAsEmail(username) {
