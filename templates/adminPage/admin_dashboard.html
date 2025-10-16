@@ -82,6 +82,21 @@
                     <i class="fas fa-arrow-left mr-2"></i> Back to Home
                 </a>
 
+                <!-- Flash Messages from Server -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="mb-4 space-y-2">
+                        {% for category, message in messages %}
+                            <div class="p-3 rounded-lg text-sm font-semibold text-white
+                                {% if category == 'error' %}bg-red-500
+                                {% elif category == 'success' %}bg-green-500
+                                {% else %}bg-blue-500{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
                 <h2 class="text-3xl font-bold text-yellow-600 mb-4 text-center">Admin Dashboard</h2>
 
                 <!-- Admin Summary Cards -->

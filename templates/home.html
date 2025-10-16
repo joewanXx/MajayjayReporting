@@ -80,6 +80,22 @@
     <main class="flex-1 p-4 md:p-8 overflow-auto">
         <div class="max-w-7xl mx-auto">
 
+                <!-- Flash Messages from Server -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="mb-4 space-y-2 max-w-5xl mx-auto">
+                        {% for category, message in messages %}
+                            <div class="p-3 rounded-lg text-sm font-semibold text-white
+                                {% if category == 'error' %}bg-red-500
+                                {% elif category == 'success' %}bg-green-500
+                                {% else %}bg-blue-500{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+                
                 <!-- 1. Home Page (Default View) -->
             <div id="home-page">
                 <div class="text-center my-8 md:my-12">
