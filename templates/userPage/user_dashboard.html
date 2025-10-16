@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MajayHi</title>
+    <!-- Tailwind CSS and Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Assuming this is your custom stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <!-- Page Styling -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* BG color for the main content area */
+        }
+        .hero-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .hero-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                        0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- Main Flex Container -->
+    <div class="flex">
+        <!-- ========================================================= -->
+        <!-- 🧭 SIDEBAR NAVIGATION -->
+        <!-- ========================================================= -->
+        <aside id="sidebar" class="bg-blue-600 text-white w-64 min-h-screen p-4 flex flex-col justify-between fixed top-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-40 shadow-xl">
+            <!-- Top Section: Logo & Nav -->
+            <div>
+                <!-- Logo/Title -->
+                <div class="mb-10 text-center">
+                    <a href="{{ url_for('home') }}" class="text-xl md:text-2xl font-bold hover:text-blue-200 transition">
+                        Brgy. San Francisco Portal
+                    </a>
+                </div>
+
+                <!-- Navigation Links -->
+                <nav id="nav-links" class="flex flex-col space-y-2">
+                    <a href="{{ url_for('reports') }}" class="text-base py-3 px-4 rounded-lg hover:bg-blue-700 transition flex items-center">
+                        <i class="fas fa-list-alt fa-fw mr-3"></i> Public Reports
+                    </a>
+                    <a href="{{ url_for('report') }}" id="nav-submit-report-link" class="text-base py-3 px-4 rounded-lg hover:bg-blue-700 transition flex items-center">
+                        <i class="fas fa-bullhorn fa-fw mr-3"></i> Submit Report
+                    </a>
+                    <a href="{{ url_for('admin') }}" id="nav-admin-link" class="text-base py-3 px-4 rounded-lg hover:bg-blue-700 hover:text-yellow-300 transition flex items-center hidden">
+                        <i class="fas fa-chart-line fa-fw mr-3"></i> Admin Dashboard
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Bottom Section: Login/Logout Status -->
+            <div id="auth-controls" class="border-t border-blue-500 pt-4">
+                <div id="logged-in-status" class="hidden items-center mb-3">
+                    <div class="text-left text-sm w-full">
+                        <p class="font-semibold truncate" id="header-username"></p>
+                        <p class="text-blue-200 text-xs" id="header-role"></p>
+                    </div>
+                </div>
+                <a href="{{ url_for('login') }}" id="auth-button" class="bg-white text-blue-600 w-full px-4 py-2 rounded-lg font-bold shadow-md hover:bg-gray-100 transition flex items-center justify-center no-underline">
+                    <i class="fas fa-sign-in-alt mr-2"></i>
+                    <span id="auth-button-text">Log In</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- ========================================================= -->
+        <!-- 📄 MAIN CONTENT -->
+        <!-- ========================================================= -->
+        <div class="flex-1 md:ml-64">
+            <!-- Mobile Header with Hamburger Menu -->
+            <header class="md:hidden bg-blue-600 text-white p-4 flex justify-between items-center sticky top-0 z-30 shadow-md">
+                <h1 class="text-lg font-bold">Brgy. SF Portal</h1>
+                <button id="hamburger-btn" class="text-2xl p-2 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white rounded">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </header>
+
+            <main class="flex-1 p-4 md:p-8 overflow-auto">
+                <div class="max-w-7xl mx-auto">
+
+                    <!-- 1. Home Page (Default View) -->
+                    <div id="home-page">
+                        <div class="text-center my-8 md:my-12">
+                            <h2 class="text-4xl md:text-5xl font-extrabold text-gray-800 mb-2">Welcome to Your Portal!</h2>
+                            <p class="text-lg text-gray-500">Quickly submit reports or check the status of community issues.</p>
+                        </div>
+
+                        <!-- Introduction Section -->
+                        <div class="max-w-5xl mx-auto bg-white p-8 rounded-xl shadow-lg mt-8 text-left">
+                            <h3 class="text-2xl font-bold text-gray-800 mb-4">Welcome to the Brgy. San Francisco Community Portal</h3>
+                            <p class="text-gray-600 mb-6">This platform serves as a direct link between the residents of Barangay San Francisco and our local officials. We are dedicated to enhancing our community by providing a modern, efficient way to communicate concerns, report issues, and stay updated on local matters. Our goal is to foster a more responsive, transparent, and collaborative barangay for everyone.</p>
+
+                            <div class="grid md:grid-cols-2 gap-8 border-t pt-6">
+                                <div>
+                                    <h4 class="text-xl font-bold text-gray-700 mb-3">About Our System</h4>
+                                    <p class="text-gray-600">The Community Portal is designed for ease of use. Residents can quickly submit reports on issues such as infrastructure problems, sanitation concerns, or public safety hazards. Each report can be tracked publicly, ensuring transparency in how issues are addressed by the barangay council. This system helps us prioritize and resolve community problems faster and more effectively.</p>
+                                </div>
+                                <div>
+                                    <h4 class="text-xl font-bold text-gray-700 mb-3">About Majayjay, Laguna</h4>
+                                    <p class="text-gray-600">Our beloved town of Majayjay, located at the foot of Mount Banahaw in the province of Laguna, is rich in history and natural beauty. It is home to the historic St. Gregory the Great Parish Church, one of the oldest Roman Catholic churches in the Philippines, and natural wonders like the majestic Taytay Falls. We are proud of our heritage and strive to maintain the peace and beauty of our community through active resident participation.</p>
+                                    
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="home-cards-container" class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mt-10 max-w-5xl mx-auto">
+                            
+                            <!-- Card 1: Submit a Report (Hidden for Admin) -->
+                            <a href="{{ url_for('report') }}" id="home-card-submit" class="hero-card bg-white p-6 md:p-8 rounded-xl shadow-lg border-t-4 border-red-500 flex flex-col items-center text-center no-underline">
+                                <i class="fas fa-bullhorn text-5xl text-red-500 mb-4"></i>
+                                <h3 class="text-xl font-bold mb-3 text-gray-700">Submit a New Report</h3>
+                                <p class="text-gray-500 text-sm mb-4 flex-1">Is there a problem? Quickly report issues like broken lights, garbage, or road damage.</p>
+                            </a>
+                            
+                            <!-- Card 2: View Community Reports -->
+                            <a href="{{ url_for('reports') }}" class="hero-card bg-white p-6 md:p-8 rounded-xl shadow-lg border-t-4 border-blue-500 flex flex-col items-center text-center no-underline">
+                                <i class="fas fa-list-alt text-5xl text-blue-500 mb-4"></i>
+                                <h3 class="text-xl font-bold mb-3 text-gray-700">View Public Reports</h3>
+                                <p class="text-gray-500 text-sm mb-4 flex-1">See what other residents have reported and check the status of pending issues.</p>
+                            </a>
+
+                            <!-- Card 3: Log In / Sign Up -->
+                            <a href="{{ url_for('login') }}" class="hero-card bg-white p-6 md:p-8 rounded-xl shadow-lg border-t-4 border-green-500 flex flex-col items-center text-center no-underline">
+                                <i class="fas fa-user-circle text-5xl text-green-500 mb-4"></i>
+                                <h3 class="text-xl font-bold mb-3 text-gray-700">My Account (Login)</h3>
+                                <p class="text-gray-500 text-sm mb-4 flex-1">Log in for private updates, to manage your reports, or to access admin features.</p>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- JS for mobile menu toggle -->
+    <script>
+        // It's recommended to move this to your main script.js file,
+        // but it is included here for a self-contained example.
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById('sidebar');
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+
+            if (hamburgerBtn && sidebar) {
+                hamburgerBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('-translate-x-full');
+                });
+            }
+            
+            // Optional: Close sidebar when clicking outside of it on mobile
+            document.addEventListener('click', (e) => {
+                if (sidebar && !sidebar.contains(e.target) && hamburgerBtn && !hamburgerBtn.contains(e.target)) {
+                    if (!sidebar.classList.contains('-translate-x-full')) {
+                        sidebar.classList.add('-translate-x-full');
+                    }
+                }
+            });
+        });
+    </script>
+    <!-- Your original script tag, make sure it's loaded after the toggle script -->
+    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+</body>
+</html>

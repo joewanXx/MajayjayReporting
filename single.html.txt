@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MajayHi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue background */
+        }
+        .page { display: none; }
+        .page.active { display: block; }
+        .hero-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .hero-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        /* Custom styling for the select dropdown arrow */
+        select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M7 7l3 3 3-3m0 6l-3-3-3 3' /%3e%3c/svg%3e");
+            background-position: right 0.75rem center;
+            background-repeat: no-repeat;
+            padding-right: 2.5rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 1.2em;
+            height: 1.2em;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    
+    <!-- Top Navigation Bar -->
+    <header class="bg-blue-600 text-white shadow-xl sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <button onclick="navigate('home')" class="text-xl md:text-2xl font-bold hover:text-blue-200 transition">
+                    Brgy. San Roque Portal
+                </button>
+                <div id="nav-links" class="hidden md:flex space-x-4 text-sm font-medium">
+                     <button onclick="navigate('view-reports')" class="hover:text-blue-200 transition p-1 rounded">
+                         <i class="fas fa-list-alt mr-1"></i> Public Reports
+                     </button>
+                     <!-- Nav submit report link - Hidden for Admin -->
+                     <button id="nav-submit-report-link" onclick="navigate('submit-report')" class="hover:text-blue-200 transition p-1 rounded">
+                         <i class="fas fa-bullhorn mr-1"></i> Submit Report
+                     </button>
+                     <!-- Admin link for logged-in admin -->
+                     <button id="nav-admin-link" onclick="navigate('admin-dashboard')" class="hover:text-yellow-300 transition p-1 rounded hidden">
+                         <i class="fas fa-chart-line mr-1"></i> Admin Dashboard
+                     </button>
+                </div>
+            </div>
+
+            <!-- Authentication Button/Status -->
+            <div id="auth-controls" class="flex items-center space-x-3">
+                 <div id="logged-in-status" class="hidden text-right text-xs">
+                     <p class="font-semibold" id="header-username"></p>
+                     <p class="text-blue-200 text-xs" id="header-role"></p>
+                 </div>
+                 
+                 <button id="auth-button" onclick="navigate('auth')" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-bold shadow-md hover:bg-gray-100 transition flex items-center">
+                    <i class="fas fa-sign-in-alt mr-2"></i> Log In
+                 </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area: Pages -->
+    <main class="flex-1 p-4 md:p-8 overflow-auto">
+        <div class="max-w-7xl mx-auto">
+            
+            <!-- 1. Home Page (Default View) -->
+            <div id="home-page" class="page active">
+                <div class="text-center my-8 md:my-12">
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-gray-800 mb-2">Welcome to Your Portal!</h2>
+                    <p class="text-lg text-gray-500">Quickly submit reports or check the status of community issues.</p>
+                </div>
+
+                <!-- Introduction Section -->
+                <div class="max-w-5xl mx-auto bg-white p-8 rounded-xl shadow-lg mt-8 text-left">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Welcome to the Brgy. San Roque Community Portal</h3>
+                    <p class="text-gray-600 mb-6">This platform serves as a direct link between the residents of Barangay San Roque and our local officials. We are dedicated to enhancing our community by providing a modern, efficient way to communicate concerns, report issues, and stay updated on local matters. Our goal is to foster a more responsive, transparent, and collaborative barangay for everyone.</p>
+
+                    <div class="grid md:grid-cols-2 gap-8 border-t pt-6">
+                        <div>
+                            <h4 class="text-xl font-bold text-gray-700 mb-3">About Our System</h4>
+                            <p class="text-gray-600">The Community Portal is designed for ease of use. Residents can quickly submit reports on issues such as infrastructure problems, sanitation concerns, or public safety hazards. Each report can be tracked publicly, ensuring transparency in how issues are addressed by the barangay council. This system helps us prioritize and resolve community problems faster and more effectively.</p>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold text-gray-700 mb-3">About Majayjay, Laguna</h4>
+                            <p class="text-gray-600">Our beloved town of Majayjay, located at the foot of Mount Banahaw in the province of Laguna, is rich in history and natural beauty. It is home to the historic St. Gregory the Great Parish Church, one of the oldest Roman Catholic churches in the Philippines, and natural wonders like the majestic Taytay Falls. We are proud of our heritage and strive to maintain the peace and beauty of our community through active resident participation.</p>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                <div id="home-cards-container" class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mt-10 max-w-5xl mx-auto">
+                    
+                    <!-- Card 1: Submit a Report (Hidden for Admin) -->
+                    <div id="home-card-submit" onclick="navigate('submit-report')" class="hero-card bg-white p-6 md:p-8 rounded-xl shadow-lg border-t-4 border-red-500 flex flex-col items-center text-center">
+                        <i class="fas fa-bullhorn text-5xl text-red-500 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-3 text-gray-700">Submit a New Report</h3>
+                        <p class="text-gray-500 text-sm mb-4 flex-1">Is there a problem? Quickly report issues like broken lights, garbage, or road damage.</p>
+                    </div>
+                    
+                    <!-- Card 2: View Community Reports -->
+                    <div onclick="navigate('view-reports')" class="hero-card bg-white p-6 md:p-8 rounded-xl shadow-lg border-t-4 border-blue-500 flex flex-col items-center text-center">
+                        <i class="fas fa-list-alt text-5xl text-blue-500 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-3 text-gray-700">View Public Reports</h3>
+                        <p class="text-gray-500 text-sm mb-4 flex-1">See what other residents have reported and check the status of pending issues.</p>
+                    </div>
+
+                    <!-- Card 3: Log In / Sign Up -->
+                    <div onclick="navigate('auth')" class="hero-card bg-white p-6 md:p-8 rounded-xl shadow-lg border-t-4 border-green-500 flex flex-col items-center text-center">
+                        <i class="fas fa-user-circle text-5xl text-green-500 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-3 text-gray-700">My Account (Login)</h3>
+                        <p class="text-gray-500 text-sm mb-4 flex-1">Log in for private updates, to manage your reports, or to access admin features.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Authentication Page (Functional) -->
+            <div id="auth-page" class="page max-w-lg mx-auto bg-white p-8 rounded-xl shadow-2xl">
+                <!-- Back Button -->
+                <button onclick="navigate('home')" class="text-sm text-blue-600 hover:text-blue-800 flex items-center mb-6 font-medium">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Home
+                </button>
+                
+                <h2 id="auth-header" class="text-3xl font-bold text-gray-800 mb-6 text-center">Account Access</h2>
+                
+                <!-- Toggle between Login and Sign Up -->
+                <div id="auth-tabs" class="flex justify-center mb-6">
+                    <button id="login-tab" onclick="showAuthForm('login')" class="px-4 py-2 font-semibold rounded-l-lg border-b-2 border-green-600 text-green-600 bg-green-50">Log In</button>
+                    <button id="signup-tab" onclick="showAuthForm('signup')" class="px-4 py-2 font-semibold rounded-r-lg border-b-2 border-gray-300 text-gray-500 hover:text-green-600 hover:border-green-300 transition">Sign Up</button>
+                </div>
+
+                <!-- Auth Status Display (for logged-in users) -->
+                <div id="auth-status" class="hidden text-center p-6 bg-green-50 rounded-xl border border-green-200">
+                    <p class="text-lg font-semibold text-green-700 mb-4">Welcome Back!</p>
+                    <p class="text-sm text-gray-700">Logged in as: <span id="user-email" class="font-bold block mt-1"></span></p>
+                    <p class="text-xs text-gray-500 mt-2">Your ID: <span id="user-id-display" class="font-mono text-xs block mt-1 p-2 bg-white rounded-md shadow-inner overflow-x-auto"></span></p>
+                    <button onclick="handleLogout()" class="mt-6 w-full bg-red-500 text-white p-3 rounded-lg font-bold hover:bg-red-600 transition">Log Out</button>
+                </div>
+                
+                <!-- Login Form -->
+                <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+                    <input id="login-email" type="text" placeholder="Username (Try 'admin' or 'user')" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                    <input id="login-password" type="password" placeholder="Password (Try 'password')" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                    <button type="submit" id="login-button" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold hover:bg-green-700 transition flex items-center justify-center">
+                        Log In
+                    </button>
+                    <p id="login-error" class="text-sm text-red-500 text-center hidden p-2 bg-red-100 rounded"></p>
+                </form>
+
+                <!-- Sign Up Form (Initially hidden) -->
+                <form id="signup-form" onsubmit="handleSignUp(event)" class="space-y-4 hidden">
+                    <input id="signup-email" type="text" placeholder="New Username" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                    <input id="signup-password" type="password" placeholder="Password (Min 6 characters)" required minlength="6" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                    <input id="signup-confirm-password" type="password" placeholder="Confirm Password" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                    <button type="submit" id="signup-button" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold hover:bg-green-700 transition flex items-center justify-center">
+                        Sign Up
+                    </button>
+                    <p id="signup-error" class="text-sm text-red-500 text-center hidden p-2 bg-red-100 rounded"></p>
+                </form>
+
+                <!-- Bottom Back Link -->
+                <div class="mt-6 text-center border-t pt-4">
+                    <button onclick="navigate('home')" class="text-sm text-gray-500 hover:text-gray-800 flex items-center mx-auto">
+                        <i class="fas fa-arrow-left mr-2"></i> Back to Home
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 3. Submit Report Page (Enhanced Form) -->
+            <div id="submit-report-page" class="page max-w-xl mx-auto bg-white p-8 rounded-xl shadow-2xl">
+                <!-- Back Button -->
+                <button onclick="navigate('home')" class="text-sm text-blue-600 hover:text-blue-800 flex items-center mb-6 font-medium">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Home
+                </button>
+
+                <h2 class="text-3xl font-bold text-red-500 mb-4 text-center">Submit a New Report</h2>
+                <p class="mb-6 text-gray-600 text-center">Provide detailed information, photo evidence, and the specific area.</p>
+                
+                <form id="report-form" onsubmit="handleReportSubmission(event)" class="space-y-5">
+                    
+                    <!-- Report Name (Optional) -->
+                    <div>
+                        <label for="reporter-name" class="block text-sm font-medium text-gray-700 mb-1">Your Name (Optional)</label>
+                        <input id="reporter-name" type="text" placeholder="Leave blank to submit anonymously" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">
+                    </div>
+
+                    <!-- Issue Title -->
+                    <div>
+                        <label for="report-title" class="block text-sm font-medium text-gray-700 mb-1">Issue Title</label>
+                        <input id="report-title" type="text" placeholder="e.g., Broken Streetlight, Clogged Gutter" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">
+                    </div>
+                    
+                    <!-- Issue Category Dropdown -->
+                    <div>
+                        <label for="issue-category" class="block text-sm font-medium text-gray-700 mb-1">Category of Issue</label>
+                        <select id="issue-category" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 bg-white">
+                            <option value="" disabled selected>Select a category...</option>
+                            <option value="infrastructure">Infrastructure (Roads, Lights, Water)</option>
+                            <option value="sanitation">Sanitation (Garbage, Drainage, Pollution)</option>
+                            <option value="safety">Public Safety (Crime, Hazards, Vandalism)</option>
+                            <option value="noise">Noise/Disturbance</option>
+                            <option value="others">Other Community Concern</option>
+                        </select>
+                    </div>
+
+                    <!-- Location Input -->
+                    <div>
+                        <label for="report-location" class="block text-sm font-medium text-gray-700 mb-1">Specific Location / Area</label>
+                        <input id="report-location" type="text" placeholder="e.g., Corner of P. Gomez and Rizal Ave" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">
+                        <p class="text-xs text-gray-500 mt-1">This is mandatory to help us find the issue quickly.</p>
+                    </div>
+
+                    <!-- Description Textarea -->
+                    <div>
+                        <label for="report-description" class="block text-sm font-medium text-gray-700 mb-1">Detailed Description</label>
+                        <textarea id="report-description" placeholder="Describe the problem and when you noticed it." rows="3" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"></textarea>
+                    </div>
+                    
+                    <!-- Photo Evidence (REQUIRED) -->
+                    <div>
+                        <label for="photo-evidence" class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                            Photo Evidence <span class="text-red-500 text-lg ml-1">*</span>
+                        </label>
+                        <input id="photo-evidence" type="file" required accept="image/*" class="w-full border p-3 bg-gray-50 rounded-lg text-sm">
+                        <p class="text-xs text-gray-500 mt-1">Please upload one clear photo of the issue. (Required)</p>
+                    </div>
+
+                    <button type="submit" class="w-full bg-red-600 text-white p-3 rounded-lg font-bold shadow-lg hover:bg-red-700 transition duration-300 flex items-center justify-center space-x-2">
+                        <i class="fas fa-paper-plane mr-2"></i> Submit Report
+                    </button>
+                </form>
+                
+                <!-- Bottom Back Link -->
+                <div class="mt-8 text-center border-t pt-4">
+                    <button onclick="navigate('home')" class="text-sm text-gray-500 hover:text-gray-800 flex items-center mx-auto">
+                        <i class="fas fa-arrow-left mr-2"></i> Back to Home
+                    </button>
+                </div>
+            </div>
+
+            <!-- 4. View Reports Page -->
+            <div id="view-reports-page" class="page max-w-4xl mx-auto">
+                <!-- Back Button -->
+                <button onclick="navigate('home')" class="text-sm text-blue-600 hover:text-blue-800 flex items-center mb-6 font-medium">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Home
+                </button>
+
+                <h2 class="text-3xl font-bold text-blue-500 mb-6 text-center">Community Reports Status</h2>
+                <div id="public-reports-list" class="space-y-4">
+                    <!-- Public reports rendered here -->
+                </div>
+                <!-- Bottom Back Link -->
+                <div class="mt-6 text-center border-t pt-4">
+                    <button onclick="navigate('home')" class="text-sm text-gray-500 hover:text-gray-800 flex items-center mx-auto">
+                        <i class="fas fa-arrow-left mr-2"></i> Back to Home
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 5. Admin Dashboard Page -->
+            <div id="admin-dashboard-page" class="page max-w-5xl mx-auto">
+                <!-- Back Button -->
+                <button onclick="navigate('home')" class="text-sm text-blue-600 hover:text-blue-800 flex items-center mb-6 font-medium">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Home
+                </button>
+
+                <h2 class="text-3xl font-bold text-yellow-600 mb-4 text-center">Admin Dashboard</h2>
+                <p class="mb-8 text-gray-600 text-center">Welcome, Administrator. Review and manage reports below.</p>
+
+                <!-- Key Metrics Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-500 shadow-md">
+                        <i class="fas fa-exclamation-triangle text-3xl text-yellow-500 mb-3"></i>
+                        <h3 id="pending-count" class="font-bold text-3xl mb-1 text-gray-800">0</h3>
+                        <p class="text-sm text-gray-500">Pending Reports</p>
+                    </div>
+                    <div class="bg-green-50 p-6 rounded-lg border-l-4 border-green-500 shadow-md">
+                        <i class="fas fa-check-circle text-3xl text-green-500 mb-3"></i>
+                        <h3 id="resolved-count" class="font-bold text-3xl mb-1 text-gray-800">0</h3>
+                        <p class="text-sm text-gray-500">Resolved Reports</p>
+                    </div>
+                    <div class="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-500 shadow-md">
+                        <i class="fas fa-users text-3xl text-blue-500 mb-3"></i>
+                        <h3 id="user-count" class="font-bold text-3xl mb-1 text-gray-800">0</h3>
+                        <p class="text-sm text-gray-500">Registered Users</p>
+                    </div>
+                </div>
+
+                <!-- Reports Overview with Dynamic Reports -->
+                <div class="mt-8 bg-white rounded-xl shadow-lg overflow-hidden">
+                    <h3 class="text-2xl font-bold text-gray-700 p-6 border-b flex items-center">
+                        <i class="fas fa-table mr-3 text-yellow-600"></i> Active Report Feed
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-600">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">Report Details</th>
+                                    <th scope="col" class="px-6 py-3">Location</th>
+                                    <th scope="col" class="px-6 py-3">Date</th>
+                                    <th scope="col" class="px-6 py-3">Status</th>
+                                    <th scope="col" class="px-6 py-3 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-reports-container">
+                                <!-- Rows dynamically injected here -->
+                            </tbody>
+                        </table>
+                        <div id="admin-reports-empty" class="hidden text-center py-10 text-gray-500">
+                            <p>No reports to display.</p>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Bottom Back Link -->
+                <div class="mt-8 text-center border-t pt-4">
+                    <button onclick="navigate('home')" class="text-sm text-gray-500 hover:text-gray-800 flex items-center mx-auto">
+                        <i class="fas fa-arrow-left mr-2"></i> Back to Home
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Report Detail Modal (Admin Action Modal) -->
+    <div id="report-detail-modal" class="fixed inset-0 bg-gray-900 bg-opacity-80 hidden items-center justify-center p-4 z-50 transition duration-300 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal('report-detail-modal')" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <h3 id="modal-report-title" class="text-2xl font-bold text-yellow-700 mb-2"></h3>
+            <p class="text-sm text-gray-500 mb-4 border-b pb-4">ID: <span id="modal-report-id" class="font-mono text-xs"></span> | Reported by: <span id="modal-report-reporter"></span></p>
+
+            <div id="modal-content-container" class="space-y-4">
+                <!-- Report Details -->
+                <div class="bg-gray-50 p-3 rounded-lg">
+                    <p class="text-sm font-semibold text-gray-700">Location:</p>
+                    <p id="modal-report-location" class="text-gray-900"></p>
+                    <p class="text-sm font-semibold text-gray-700 mt-2">Description:</p>
+                    <p id="modal-report-description" class="text-gray-800 italic"></p>
+                </div>
+
+                <!-- Admin Action Form -->
+                <form id="admin-action-form" onsubmit="handleAdminAction(event)">
+                    <input type="hidden" id="modal-current-report-id">
+                    
+                    <!-- Status Update -->
+                    <div class="mb-4">
+                        <label for="admin-status" class="block text-sm font-medium text-gray-700 mb-1">Update Status</label>
+                        <select id="admin-status" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500 bg-white">
+                            <option value="New">New</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Resolved">Resolved</option>
+                        </select>
+                    </div>
+
+                    <!-- Admin Response/Comment -->
+                    <div class="mb-4">
+                        <label for="admin-response" class="block text-sm font-medium text-gray-700 mb-1">Official Response / Notes</label>
+                        <textarea id="admin-response" placeholder="Type official update or internal notes here." rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500"></textarea>
+                        <p class="text-xs text-gray-500 mt-1">Previous response: <span id="modal-previous-response" class="italic">None</span></p>
+                    </div>
+
+                    <!-- Photo Proof (Simulated Upload) -->
+                    <div class="mb-4">
+                        <label for="admin-photo-proof" class="block text-sm font-medium text-gray-700 mb-1">Upload Resolution Photo Proof (Optional)</label>
+                        <input id="admin-photo-proof" type="file" accept="image/*" class="w-full border p-3 bg-gray-50 rounded-lg text-sm">
+                        <p class="text-xs text-gray-500 mt-1">Current Proof: <span id="modal-current-proof" class="italic">None</span></p>
+                    </div>
+
+                    <button type="submit" class="w-full bg-yellow-600 text-white p-3 rounded-lg font-bold shadow-lg hover:bg-yellow-700 transition flex items-center justify-center space-x-2">
+                        <i class="fas fa-save mr-2"></i> Save Changes & Update Report
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Custom Toast Message Container -->
+    <div id="toast-container" class="fixed top-20 right-4 z-[100] space-y-2"></div>
+
+    <script type="text/javascript">
+        // --- Mock Authentication Data and State ---
+        let mockUser = null; // Represents the currently logged-in user object
+        
+        // Mock database for sign-up/login simulation
+        const mockUserDB = {
+            "admin@brgyportal.io": { uid: "admin-uid-12345", username: "admin", password: "password", role: "admin" },
+            "user@brgyportal.io": { uid: "user-uid-67890", username: "user", password: "password", role: "resident" }
+        };
+
+        // Mock Reports Data (Centralized State)
+        let mockReports = [
+            { id: 'R-1702588800000-1', reporter: 'Anonymous', title: 'Illegal Dumping Site', category: 'sanitation', location: 'Back alley behind the basketball court', description: 'Large piles of household trash and debris have accumulated over the past week.', status: 'New', date: '2025-10-13', response: null, proof: null },
+            { id: 'R-1702588800000-2', reporter: 'Juan Dela Cruz', title: 'Damaged Road Surface', category: 'infrastructure', location: 'Mid-section of Sampaguita Street', description: 'A deep pothole has formed, causing traffic issues and hazard to cyclists.', status: 'In Progress', date: '2025-10-12', response: 'Inspection complete. Work crew scheduled for repair on 10/18.', proof: 'RoadRepairPlan.pdf' },
+            { id: 'R-1702588800000-3', reporter: 'Maria Santos', title: 'Loud Construction Noise', category: 'noise', location: 'Near Brgy. Hall construction site', description: 'Noise levels exceed permitted hours, especially early in the morning (6 AM).', status: 'Resolved', date: '2025-10-10', response: 'Contractor warned and hours adjusted. Issue closed.', proof: 'ResolvedSitePhoto.jpg' },
+            { id: 'R-1702588800000-4', reporter: 'Mark D.', title: 'Broken Water Pipe', category: 'infrastructure', location: 'In front of 123 P. Gomez Street', description: 'Water is leaking severely, causing flooding on the street. Needs urgent attention.', status: 'New', date: '2025-10-14', response: null, proof: null },
+        ];
+
+
+        // --- Utility Functions ---
+        
+        function formatUsernameAsEmail(username) {
+            return `${username.toLowerCase().trim()}@brgyportal.io`;
+        }
+
+        function getDisplayUsername(email) {
+            if (!email) return 'N/A';
+            return email.split('@')[0];
+        }
+
+        function generateReportId() {
+            // FIX: Create a more unique ID to avoid collisions
+            return `R-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        }
+
+        function setButtonLoading(buttonId, isLoading, text = 'Loading...') {
+            const button = document.getElementById(buttonId);
+            if (!button) return;
+
+            if (isLoading) {
+                button.disabled = true;
+                button.innerHTML = `<div class="loading-spinner"></div> ${text}`;
+            } else {
+                button.disabled = false;
+                if (buttonId === 'login-button') {
+                    button.innerHTML = 'Log In';
+                } else if (buttonId === 'signup-button') {
+                    button.innerHTML = 'Sign Up';
+                }
+            }
+        }
+        
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const colors = {
+                success: 'bg-green-600',
+                error: 'bg-red-600',
+                info: 'bg-blue-600',
+                warning: 'bg-yellow-500'
+            };
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-times-circle',
+                info: 'fa-info-circle',
+                warning: 'fa-exclamation-triangle'
+            }
+
+            toast.innerHTML = `<i class="fas ${icons[type]} mr-2"></i> ${message}`;
+            toast.className = `p-4 rounded-xl shadow-2xl text-white font-semibold z-50 ${colors[type]} transition-all duration-300 transform translate-x-full opacity-0 flex items-center`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000); 
+        }
+
+        window.closeModal = function(modalId) {
+            const modal = document.getElementById(modalId);
+            if(modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+        
+        // --- Page Navigation ---
+        function navigate(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            const targetPage = document.getElementById(`${pageId}-page`);
+            if (targetPage) {
+                targetPage.classList.add('active');
+                window.scrollTo(0, 0); // Scroll to top on page change
+            }
+
+            // Additional logic for specific pages
+            if(pageId === 'admin-dashboard' && mockUser?.role === 'admin') {
+                renderAdminReports();
+                updateAdminDashboardMetrics();
+            }
+            if(pageId === 'view-reports') {
+                renderPublicReports();
+            }
+            if(pageId === 'auth') {
+                updateAuthPage();
+            }
+        }
+
+
+        // --- Core Application Logic & UI Updates ---
+
+        function updateUI() {
+            updateHeaderNav();
+            updateHomeCards();
+            updateAuthPage();
+        }
+
+        function updateHeaderNav() {
+            const authButton = document.getElementById('auth-button');
+            const loggedInStatus = document.getElementById('logged-in-status');
+            const navAdminLink = document.getElementById('nav-admin-link');
+            const navSubmitReportLink = document.getElementById('nav-submit-report-link'); 
+            
+            if (mockUser) {
+                const username = getDisplayUsername(mockUser.email);
+                const role = mockUser.role === 'admin' ? 'Administrator' : 'Resident';
+
+                // Update Header Status
+                document.getElementById('header-username').textContent = username;
+                document.getElementById('header-role').textContent = role;
+                loggedInStatus.classList.remove('hidden');
+
+                // Update Auth Button to Logout
+                authButton.setAttribute('onclick', 'handleLogout()');
+                authButton.innerHTML = `<i class="fas fa-sign-out-alt mr-2"></i> Log Out`;
+                authButton.classList.replace('bg-white', 'bg-red-500');
+                authButton.classList.replace('text-blue-600', 'text-white');
+                authButton.classList.add('hover:bg-red-600');
+                authButton.classList.remove('hover:bg-gray-100');
+
+                // Toggle Admin Dashboard link and Report link visibility
+                if (mockUser.role === 'admin') {
+                    navAdminLink.classList.remove('hidden');
+                    navSubmitReportLink.classList.add('hidden');
+                } else {
+                    navAdminLink.classList.add('hidden');
+                    navSubmitReportLink.classList.remove('hidden');
+                }
+
+            } else {
+                // Not logged in
+                loggedInStatus.classList.add('hidden');
+                
+                // FIX: Corrected function call from Maps to navigate
+                authButton.setAttribute('onclick', `navigate('auth')`);
+                authButton.innerHTML = `<i class="fas fa-sign-in-alt mr-2"></i> Log In`;
+                authButton.classList.replace('bg-red-500', 'bg-white');
+                authButton.classList.replace('text-white', 'text-blue-600');
+                authButton.classList.remove('hover:bg-red-600');
+                authButton.classList.add('hover:bg-gray-100');
+                
+                navAdminLink.classList.add('hidden');
+                navSubmitReportLink.classList.remove('hidden');
+            }
+        }
+
+        function updateHomeCards() {
+            const isAdmin = mockUser && mockUser.role === 'admin';
+            const submitCard = document.getElementById('home-card-submit');
+            const cardsContainer = document.getElementById('home-cards-container');
+
+            if (submitCard) {
+                if (isAdmin) {
+                    submitCard.classList.add('hidden');
+                    cardsContainer.classList.add('md:grid-cols-2');
+                    cardsContainer.classList.remove('md:grid-cols-3');
+                } else {
+                    submitCard.classList.remove('hidden');
+                    cardsContainer.classList.remove('md:grid-cols-2');
+                    cardsContainer.classList.add('md:grid-cols-3');
+                }
+            }
+        }
+
+        function updateAuthPage() {
+            const authStatusDiv = document.getElementById('auth-status');
+            const authForms = ['login-form', 'signup-form', 'auth-tabs'];
+
+            if (mockUser) {
+                document.getElementById('user-email').textContent = mockUser.email;
+                document.getElementById('user-id-display').textContent = mockUser.uid;
+                authStatusDiv.classList.remove('hidden');
+                authForms.forEach(id => document.getElementById(id).classList.add('hidden'));
+            } else {
+                authStatusDiv.classList.add('hidden');
+                authForms.forEach(id => document.getElementById(id).classList.remove('hidden'));
+                showAuthForm('login');
+            }
+        }
+
+        // --- Authentication Handlers ---
+        
+        function handleLogin(event) {
+            event.preventDefault();
+            const email = formatUsernameAsEmail(document.getElementById('login-email').value);
+            const password = document.getElementById('login-password').value;
+            const errorEl = document.getElementById('login-error');
+            
+            setButtonLoading('login-button', true);
+            errorEl.classList.add('hidden');
+
+            setTimeout(() => {
+                const user = mockUserDB[email];
+                if (user && user.password === password) {
+                    mockUser = { email, uid: user.uid, role: user.role };
+                    showToast('Login successful! Welcome back.', 'success');
+                    updateUI();
+                    if(user.role === 'admin') {
+                        navigate('admin-dashboard');
+                    } else {
+                        navigate('home');
+                    }
+                } else {
+                    errorEl.textContent = 'Invalid username or password.';
+                    errorEl.classList.remove('hidden');
+                    showToast('Login failed. Please check your credentials.', 'error');
+                }
+                setButtonLoading('login-button', false);
+            }, 1000);
+        }
+
+        function handleSignUp(event) {
+            event.preventDefault();
+            const username = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-confirm-password').value;
+            const email = formatUsernameAsEmail(username);
+            const errorEl = document.getElementById('signup-error');
+
+            errorEl.classList.add('hidden');
+            
+            if (password !== confirmPassword) {
+                errorEl.textContent = 'Passwords do not match.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            if (mockUserDB[email]) {
+                errorEl.textContent = 'This username is already taken.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            setButtonLoading('signup-button', true, 'Creating Account...');
+
+            setTimeout(() => {
+                const newUser = {
+                    uid: `user-uid-${Date.now()}`,
+                    username,
+                    password,
+                    role: 'resident'
+                };
+                mockUserDB[email] = newUser;
+                
+                showToast('Account created successfully! Please log in.', 'success');
+                // Switch to login form
+                document.getElementById('login-email').value = username;
+                document.getElementById('login-password').value = '';
+                showAuthForm('login');
+                setButtonLoading('signup-button', false);
+            }, 1500);
+        }
+
+        function handleLogout() {
+            mockUser = null;
+            showToast('You have been logged out.', 'info');
+            updateUI();
+            navigate('home');
+        }
+
+        function showAuthForm(formType) {
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+            const loginTab = document.getElementById('login-tab');
+            const signupTab = document.getElementById('signup-tab');
+
+            if (formType === 'login') {
+                loginForm.classList.remove('hidden');
+                signupForm.classList.add('hidden');
+                loginTab.classList.add('border-green-600', 'text-green-600', 'bg-green-50');
+                loginTab.classList.remove('border-gray-300', 'text-gray-500');
+                signupTab.classList.add('border-gray-300', 'text-gray-500');
+                signupTab.classList.remove('border-green-600', 'text-green-600', 'bg-green-50');
+            } else {
+                loginForm.classList.add('hidden');
+                signupForm.classList.remove('hidden');
+                signupTab.classList.add('border-green-600', 'text-green-600', 'bg-green-50');
+                signupTab.classList.remove('border-gray-300', 'text-gray-500');
+                loginTab.classList.add('border-gray-300', 'text-gray-500');
+                loginTab.classList.remove('border-green-600', 'text-green-600', 'bg-green-50');
+            }
+        }
+
+        // --- Report Handling ---
+
+        function handleReportSubmission(event) {
+            event.preventDefault();
+            const newReport = {
+                id: generateReportId(),
+                reporter: document.getElementById('reporter-name').value || 'Anonymous',
+                title: document.getElementById('report-title').value,
+                category: document.getElementById('issue-category').value,
+                location: document.getElementById('report-location').value,
+                description: document.getElementById('report-description').value,
+                status: 'New',
+                date: new Date().toISOString().split('T')[0],
+                response: null,
+                proof: null
+            };
+            mockReports.unshift(newReport); // Add to the top of the list
+            
+            showToast('Report submitted successfully!', 'success');
+            document.getElementById('report-form').reset();
+            navigate('view-reports');
+        }
+
+        function getStatusBadge(status) {
+            const baseClasses = 'px-3 py-1 text-xs font-bold rounded-full';
+            switch (status) {
+                case 'New': return `<span class="${baseClasses} bg-yellow-100 text-yellow-800">New</span>`;
+                case 'In Progress': return `<span class="${baseClasses} bg-blue-100 text-blue-800">In Progress</span>`;
+                case 'Resolved': return `<span class="${baseClasses} bg-green-100 text-green-800">Resolved</span>`;
+                default: return `<span class="${baseClasses} bg-gray-100 text-gray-800">${status}</span>`;
+            }
+        }
+
+        function renderPublicReports() {
+            const container = document.getElementById('public-reports-list');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            if (mockReports.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500">No public reports have been filed yet.</p>';
+                return;
+            }
+
+            mockReports.forEach(report => {
+                const reportCard = `
+                    <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-blue-500">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="text-lg font-bold text-gray-800">${report.title}</h4>
+                                <p class="text-sm text-gray-500">Reported on ${report.date} at ${report.location}</p>
+                            </div>
+                            ${getStatusBadge(report.status)}
+                        </div>
+                        <div class="mt-3 pt-3 border-t">
+                            <p class="text-sm text-gray-700">${report.description}</p>
+                            ${report.response ? `<div class="mt-3 p-3 bg-green-50 border-l-4 border-green-300 rounded-r-lg">
+                                <p class="font-semibold text-sm text-green-800">Official Response:</p>
+                                <p class="text-sm text-green-700 italic">"${report.response}"</p>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += reportCard;
+            });
+        }
+        
+        function renderAdminReports() {
+            const container = document.getElementById('admin-reports-container'); // This is the tbody
+            const emptyState = document.getElementById('admin-reports-empty');
+            if (!container || !emptyState) return;
+
+            container.innerHTML = '';
+
+            if (mockReports.length === 0) {
+                emptyState.classList.remove('hidden');
+                container.parentElement.parentElement.classList.add('hidden'); // Hide table wrapper
+            } else {
+                emptyState.classList.add('hidden');
+                container.parentElement.parentElement.classList.remove('hidden'); // Show table wrapper
+
+                mockReports.forEach(report => {
+                    const reportRow = `
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-6 py-4">
+                                <p class="font-bold text-gray-800">${report.title}</p>
+                                <p class="text-xs text-gray-500 font-mono">${report.id}</p>
+                            </td>
+                            <td class="px-6 py-4">
+                                ${report.location}
+                            </td>
+                            <td class="px-6 py-4">
+                                ${report.date}
+                            </td>
+                            <td class="px-6 py-4">
+                                ${getStatusBadge(report.status)}
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <button onclick="openAdminModal('${report.id}')" class="bg-yellow-500 text-white px-3 py-2 rounded-lg font-bold hover:bg-yellow-600 text-xs shadow-sm transition">
+                                    <i class="fas fa-edit mr-1"></i> Manage
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    container.innerHTML += reportRow;
+                });
+            }
+        }
+
+
+        function openAdminModal(reportId) {
+            const report = mockReports.find(r => r.id === reportId);
+            if (!report) return;
+
+            // Populate modal fields
+            document.getElementById('modal-report-title').textContent = report.title;
+            document.getElementById('modal-report-id').textContent = report.id;
+            document.getElementById('modal-report-reporter').textContent = report.reporter;
+            document.getElementById('modal-report-location').textContent = report.location;
+            document.getElementById('modal-report-description').textContent = report.description;
+            document.getElementById('modal-current-report-id').value = report.id;
+            document.getElementById('admin-status').value = report.status;
+            document.getElementById('admin-response').value = report.response || '';
+            document.getElementById('modal-previous-response').textContent = report.response || 'None';
+            document.getElementById('modal-current-proof').textContent = report.proof || 'None';
+
+            // Show modal
+            const modal = document.getElementById('report-detail-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function handleAdminAction(event) {
+            event.preventDefault();
+            const reportId = document.getElementById('modal-current-report-id').value;
+            const newStatus = document.getElementById('admin-status').value;
+            const newResponse = document.getElementById('admin-response').value;
+            const newProofFile = document.getElementById('admin-photo-proof').files[0];
+
+            const reportIndex = mockReports.findIndex(r => r.id === reportId);
+            if (reportIndex > -1) {
+                mockReports[reportIndex].status = newStatus;
+                mockReports[reportIndex].response = newResponse;
+                if (newProofFile) {
+                    mockReports[reportIndex].proof = newProofFile.name; // Simulate file upload
+                }
+            }
+
+            showToast('Report updated successfully!', 'success');
+            closeModal('report-detail-modal');
+            renderAdminReports();
+            updateAdminDashboardMetrics();
+        }
+
+        function updateAdminDashboardMetrics() {
+            const pendingCount = mockReports.filter(r => r.status === 'New' || r.status === 'In Progress').length;
+            const resolvedCount = mockReports.filter(r => r.status === 'Resolved').length;
+            const userCount = Object.keys(mockUserDB).length;
+
+            document.getElementById('pending-count').textContent = pendingCount;
+            document.getElementById('resolved-count').textContent = resolvedCount;
+            document.getElementById('user-count').textContent = userCount;
+        }
+
+
+        // --- App Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUI();
+            renderPublicReports(); // Initial render for default view
+        });
+
+    </script>
+</body>
+</html>

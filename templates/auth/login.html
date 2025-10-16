@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MajayHi</title>
+    <!-- Tailwind CSS and Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+
+    <!-- Page Styling -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .hero-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .hero-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                        0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- ========================================================= -->
+    <!-- 🧭 TOP NAVIGATION BAR -->
+    <!-- ========================================================= -->
+    <header class="bg-blue-600 text-white shadow-xl sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="h-10 w-10 object-contain">
+                <a href="{{ url_for('home') }}" class="text-xl md:text-2xl font-bold hover:text-blue-200 transition">
+                    Brgy. San Francisco Portal
+                </a>
+                <div id="nav-links" class="hidden md:flex space-x-4 text-sm font-medium">
+                    <a href="{{ url_for('reports') }}" class="hover:text-blue-200 transition">
+                        <i class="fas fa-list-alt mr-1"></i> Public Reports
+                    </a>
+                    <a href="{{ url_for('report') }}" id="nav-submit-report-link" class="hover:text-blue-200 transition">
+                        <i class="fas fa-bullhorn mr-1"></i> Submit Report
+                    </a>
+                    <a href="{{ url_for('admin') }}" id="nav-admin-link" class="hover:text-yellow-300 transition hidden">
+                        <i class="fas fa-chart-line mr-1"></i> Admin Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Login/Logout Status -->
+            <div id="auth-controls" class="flex items-center space-x-3">
+                <div id="logged-in-status" class="hidden text-right text-xs">
+                    <p class="font-semibold" id="header-username"></p>
+                    <p class="text-blue-200 text-xs" id="header-role"></p>
+                </div>
+                <a href="{{ url_for('login') }}" id="auth-button" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-bold shadow-md hover:bg-gray-100 transition flex items-center no-underline">
+                    <i class="fas fa-sign-in-alt mr-2"></i> Log In
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 p-4 md:p-8 overflow-auto">
+        <div class="max-w-7xl mx-auto">
+
+            <div id="auth-page" class="max-w-lg mx-auto bg-white p-8 rounded-xl shadow-2xl">
+                <!-- Back Button -->
+                <a href="{{ url_for('home') }}" class="text-sm text-blue-600 hover:text-blue-800 flex items-center mb-6 font-medium">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Home
+                </a>
+                
+                <!-- Flash Messages from Server -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="mb-4 space-y-2">
+                        {% for category, message in messages %}
+                            <div class="p-3 rounded-lg text-sm font-semibold text-white
+                                {% if category == 'error' %}bg-red-500
+                                {% elif category == 'success' %}bg-green-500
+                                {% else %}bg-blue-500{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <h2 id="auth-header" class="text-3xl font-bold text-gray-800 mb-6 text-center">Account Access</h2>
+                
+                <!-- Toggle between Login and Sign Up -->
+                <div id="auth-tabs" class="flex justify-center mb-6">
+                    <button id="login-tab" onclick="showAuthForm('login')" class="px-4 py-2 font-semibold rounded-l-lg border-b-2 border-green-600 text-green-600 bg-green-50">Log In</button>
+                    <button id="signup-tab" onclick="showAuthForm('signup')" class="px-4 py-2 font-semibold rounded-r-lg border-b-2 border-gray-300 text-gray-500 hover:text-green-600 hover:border-green-300 transition">Sign Up</button>
+                </div>
+
+                <!-- Auth Status Display (for logged-in users) -->
+                <div id="auth-status" class="hidden text-center p-6 bg-green-50 rounded-xl border border-green-200">
+                    <p class="text-lg font-semibold text-green-700 mb-4">Welcome Back!</p>
+                    <p class="text-sm text-gray-700">Logged in as: <span id="user-email" class="font-bold block mt-1"></span></p>
+                    <p class="text-xs text-gray-500 mt-2">Your ID: <span id="user-id-display" class="font-mono text-xs block mt-1 p-2 bg-white rounded-md shadow-inner overflow-x-auto"></span></p>
+                    <button onclick="handleLogout()" class="mt-6 w-full bg-red-500 text-white p-3 rounded-lg font-bold hover:bg-red-600 transition">Log Out</button>
+                </div>
+                
+                <!-- Login Form -->
+                <form id="login-form" action="{{ url_for('login') }}" method="POST" class="space-y-4">
+                    <input name="username" id="login-email" type="text" placeholder="Username (Try 'admin' or 'user')" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                    <input name="password" id="login-password" type="password" placeholder="Password (Try 'password')" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                    <button type="submit" id="login-button" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold hover:bg-green-700 transition flex items-center justify-center">
+                        Log In
+                    </button>
+                </form>
+
+                <!-- Sign Up Form (Initially hidden) -->
+                <form id="signup-form" action="{{ url_for('signup') }}" method="POST" class="space-y-4 hidden">
+                    <input name="username" id="signup-email" type="text" placeholder="New Username" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                    <input name="password" id="signup-password" type="password" placeholder="Password (Min 6 characters)" required minlength="6" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                    <input name="confirm_password" id="signup-confirm-password" type="password" placeholder="Confirm Password" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                    <button type="submit" id="signup-button" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold hover:bg-green-700 transition flex items-center justify-center">
+                        Sign Up
+                    </button>
+                </form>
+
+                <!-- Bottom Back Link -->
+                <div class="mt-8 text-center border-t pt-4">
+                    <a href="{{ url_for('home') }}" class="text-sm text-gray-500 hover:text-gray-800 inline-flex items-center">
+                        <i class="fas fa-arrow-left mr-2"></i> Back to Home
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Custom Toast Message Container -->
+        <div id="toast-container" class="fixed top-20 right-4 z-[100] space-y-2"></div>
+    </main>
+
+    
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MajayHi</title>
+    <!-- Tailwind CSS and Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+
+    <!-- Page Styling -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .hero-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .hero-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                        0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- ========================================================= -->
+    <!-- 🧭 TOP NAVIGATION BAR -->
+    <!-- ========================================================= -->
+    <header class="bg-blue-600 text-white shadow-xl sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="h-10 w-10 object-contain">
+                <a href="{{ url_for('home') }}" class="text-xl md:text-2xl font-bold hover:text-blue-200 transition">
+                    Brgy. San Francisco Portal
+                </a>
+                <div id="nav-links" class="hidden md:flex space-x-4 text-sm font-medium">
+                    <a href="{{ url_for('reports') }}" class="hover:text-blue-200 transition">
+                        <i class="fas fa-list-alt mr-1"></i> Public Reports
+                    </a>
+                    <a href="{{ url_for('report') }}" id="nav-submit-report-link" class="hover:text-blue-200 transition">
+                        <i class="fas fa-bullhorn mr-1"></i> Submit Report
+                    </a>
+                    <a href="{{ url_for('admin') }}" id="nav-admin-link" class="hover:text-yellow-300 transition hidden">
+                        <i class="fas fa-chart-line mr-1"></i> Admin Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Login/Logout Status -->
+            <div id="auth-controls" class="flex items-center space-x-3">
+                <div id="logged-in-status" class="hidden text-right text-xs">
+                    <p class="font-semibold" id="header-username"></p>
+                    <p class="text-blue-200 text-xs" id="header-role"></p>
+                </div>
+                <a href="{{ url_for('login') }}" id="auth-button" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-bold shadow-md hover:bg-gray-100 transition flex items-center no-underline">
+                    <i class="fas fa-sign-in-alt mr-2"></i> Log In
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 p-4 md:p-8 overflow-auto">
+        <div class="max-w-7xl mx-auto">
+                        <!-- ========================================================= -->
+            <!-- 🧰 ADMIN DASHBOARD PAGE -->
+            <!-- ========================================================= -->
+            <div id="admin-dashboard-page" class="max-w-5xl mx-auto">
+                <a href="{{ url_for('home') }}" class="text-sm text-blue-600 hover:text-blue-800 flex items-center mb-6 font-medium no-underline">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Home
+                </a>
+
+                <h2 class="text-3xl font-bold text-yellow-600 mb-4 text-center">Admin Dashboard</h2>
+
+                <!-- Admin Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {% set pending_count = reports|selectattr('status', 'in', ['New', 'In Progress'])|list|length %}
+                    {% set resolved_count = reports|selectattr('status', 'equalto', 'Resolved')|list|length %}
+                    <div class="bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-500 shadow-md">
+                        <i class="fas fa-exclamation-triangle text-3xl text-yellow-500 mb-3"></i>
+                        <h3 id="pending-count" class="font-bold text-3xl text-gray-800">{{ pending_count }}</h3>
+                        <p class="text-sm text-gray-500">Pending Reports</p>
+                    </div>
+                    <div class="bg-green-50 p-6 rounded-lg border-l-4 border-green-500 shadow-md">
+                        <i class="fas fa-check-circle text-3xl text-green-500 mb-3"></i>
+                        <h3 id="resolved-count" class="font-bold text-3xl text-gray-800">{{ resolved_count }}</h3>
+                        <p class="text-sm text-gray-500">Resolved Reports</p>
+                    </div>
+                    <div class="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-500 shadow-md">
+                        <i class="fas fa-users text-3xl text-blue-500 mb-3"></i>
+                        <h3 id="user-count" class="font-bold text-3xl text-gray-800">{{ users|length }}</h3>
+                        <p class="text-sm text-gray-500">Registered Users</p>
+                    </div>
+                </div>
+
+            <!-- Reports Overview with Dynamic Reports -->
+                <div class="mt-8 bg-white rounded-xl shadow-lg overflow-hidden">
+                    <h3 class="text-2xl font-bold text-gray-700 p-6 border-b flex items-center">
+                        <i class="fas fa-table mr-3 text-yellow-600"></i> Active Report Feed
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-600">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">Report Details</th>
+                                    <th scope="col" class="px-6 py-3">Location</th>
+                                    <th scope="col" class="px-6 py-3">Date</th>
+                                    <th scope="col" class="px-6 py-3">Status</th>
+                                    <th scope="col" class="px-6 py-3 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-reports-container">
+                                {% for report in reports %}
+                                <tr class="bg-white border-b hover:bg-gray-50">
+                                    <td class="px-6 py-4">
+                                        <p class="font-bold text-gray-800">{{ report.title }}</p>
+                                        <p class="text-xs text-gray-500 font-mono">{{ report.id }}</p>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        {{ report.location }}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        {{ report.date }}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        {% if report.status == 'New' %}
+                                            <span class="px-3 py-1 text-xs font-bold rounded-full bg-yellow-100 text-yellow-800">New</span>
+                                        {% elif report.status == 'In Progress' %}
+                                            <span class="px-3 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800">In Progress</span>
+                                        {% elif report.status == 'Resolved' %}
+                                            <span class="px-3 py-1 text-xs font-bold rounded-full bg-green-100 text-green-800">Resolved</span>
+                                        {% else %}
+                                            <span class="px-3 py-1 text-xs font-bold rounded-full bg-gray-100 text-gray-800">{{ report.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <button onclick="openAdminModal('{{ report.id }}')" class="bg-yellow-500 text-white px-3 py-2 rounded-lg font-bold hover:bg-yellow-600 text-xs shadow-sm transition">
+                                            <i class="fas fa-edit mr-1"></i> Manage
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% if not reports %}
+                        <div id="admin-reports-empty" class="text-center py-10 text-gray-500">
+                            <p>No reports to display.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Pass the server-side reports data to the client-side JavaScript.
+        // The `tojson` filter safely converts the Python list to a JSON array.
+        var mockReports = {{ reports|tojson|safe }};
+    </script>
+
+    <!-- 📦 REPORT DETAIL MODAL (ADMIN ACTION) -->
+    <!-- ========================================================= -->
+    <div id="report-detail-modal" class="fixed inset-0 bg-gray-900 bg-opacity-80 hidden items-center justify-center p-4 z-50 transition duration-300 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal('report-detail-modal')" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <h3 id="modal-report-title" class="text-2xl font-bold text-yellow-700 mb-2"></h3>
+            <p class="text-sm text-gray-500 mb-4 border-b pb-4">ID: <span id="modal-report-id" class="font-mono text-xs"></span> | Reported by: <span id="modal-report-reporter"></span></p>
+
+            <div id="modal-content-container" class="space-y-4">
+                <!-- Report Details -->
+                <div class="bg-gray-50 p-3 rounded-lg">
+                    <p class="text-sm font-semibold text-gray-700">Location:</p>
+                    <p id="modal-report-location" class="text-gray-900"></p>
+                    <p class="text-sm font-semibold text-gray-700 mt-2">Description:</p>
+                    <p id="modal-report-description" class="text-gray-800 italic"></p>
+                </div>
+
+                <!-- Admin Action Form -->
+                <form id="admin-action-form" action="{{ url_for('update_report') }}" method="POST">
+                    <input type="hidden" id="modal-current-report-id" name="report_id">
+                    
+                    <!-- Status Update -->
+                    <div class="mb-4">
+                        <label for="admin-status" class="block text-sm font-medium text-gray-700 mb-1">Update Status</label>
+                        <select id="admin-status" name="status" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500 bg-white">
+                            <option value="New">New</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Resolved">Resolved</option>
+                        </select>
+                    </div>
+
+                    <!-- Admin Response/Comment -->
+                    <div class="mb-4">
+                        <label for="admin-response" class="block text-sm font-medium text-gray-700 mb-1">Official Response / Notes</label>
+                        <textarea id="admin-response" name="response" placeholder="Type official update or internal notes here." rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500"></textarea>
+                    </div>
+
+                    <!-- Photo Proof (Simulated Upload) -->
+                    <div class="mb-4">
+                        <label for="admin-photo-proof" class="block text-sm font-medium text-gray-700 mb-1">Upload Resolution Photo Proof (Optional)</label>
+                        <input id="admin-photo-proof" name="proof" type="file" accept="image/*" class="w-full border p-3 bg-gray-50 rounded-lg text-sm">
+                        <p class="text-xs text-gray-500 mt-1">Current Proof: <span id="modal-current-proof" class="italic">None</span></p>
+                    </div>
+
+                    <button type="submit" class="w-full bg-yellow-600 text-white p-3 rounded-lg font-bold shadow-lg hover:bg-yellow-700 transition flex items-center justify-center space-x-2">
+                        <i class="fas fa-save mr-2"></i> Save Changes & Update Report
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

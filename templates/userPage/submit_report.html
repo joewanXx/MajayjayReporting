@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MajayHi</title>
+    <!-- Tailwind CSS and Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Custom CSS and JavaScript -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+
+    <!-- Page Styling -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .page { display: none; }
+        .page.active { display: block; }
+        .hero-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .hero-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                        0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- ========================================================= -->
+    <!-- 🧭 TOP NAVIGATION BAR -->
+    <!-- ========================================================= -->
+    <header class="bg-blue-600 text-white shadow-xl sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <button onclick="navigate('home')" class="text-xl md:text-2xl font-bold hover:text-blue-200 transition">
+                    Brgy. San Roque Portal
+                </button>
+                <div id="nav-links" class="hidden md:flex space-x-4 text-sm font-medium">
+                    <button onclick="navigate('view-reports')" class="hover:text-blue-200 transition">
+                        <i class="fas fa-list-alt mr-1"></i> Public Reports
+                    </button>
+                    <button id="nav-submit-report-link" onclick="navigate('submit-report')" class="hover:text-blue-200 transition">
+                        <i class="fas fa-bullhorn mr-1"></i> Submit Report
+                    </button>
+                    <button id="nav-admin-link" onclick="navigate('admin-dashboard')" class="hover:text-yellow-300 transition hidden">
+                        <i class="fas fa-chart-line mr-1"></i> Admin Dashboard
+                    </button>
+                </div>
+            </div>
+
+            <!-- Login/Logout Status -->
+            <div id="auth-controls" class="flex items-center space-x-3">
+                <div id="logged-in-status" class="hidden text-right text-xs">
+                    <p class="font-semibold" id="header-username"></p>
+                    <p class="text-blue-200 text-xs" id="header-role"></p>
+                </div>
+                <button id="auth-button" onclick="navigate('auth')" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-bold shadow-md hover:bg-gray-100 transition flex items-center">
+                    <i class="fas fa-sign-in-alt mr-2"></i> Log In
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 p-4 md:p-8 overflow-auto">
+        <div class="max-w-7xl mx-auto page active">
+            <!-- 3. Submit Report Page (Enhanced Form) -->
+            <div id="submit-report-page" class="page active max-w-xl mx-auto bg-white p-8 rounded-xl shadow-2xl">
+                <!-- Back Button -->
+                <a href="{{ url_for('home') }}" class="text-sm text-blue-600 hover:text-blue-800 flex items-center mb-6 font-medium">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Home
+                </a>
+
+                <h2 class="text-3xl font-bold text-red-500 mb-4 text-center">Submit a New Report</h2>
+                <p class="mb-6 text-gray-600 text-center">Provide detailed information, photo evidence, and the specific area.</p>
+                
+                <form id="report-form" onsubmit="handleReportSubmission(event)" class="space-y-5">
+                    
+                    <!-- Report Name (Optional) -->
+                    <div>
+                        <label for="reporter-name" class="block text-sm font-medium text-gray-700 mb-1">Your Name (Optional)</label>
+                        <input id="reporter-name" type="text" placeholder="Leave blank to submit anonymously" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">
+                    </div>
+
+                    <!-- Issue Title -->
+                    <div>
+                        <label for="report-title" class="block text-sm font-medium text-gray-700 mb-1">Issue Title</label>
+                        <input id="report-title" type="text" placeholder="e.g., Broken Streetlight, Clogged Gutter" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">
+                    </div>
+                    
+                    <!-- Issue Category Dropdown -->
+                    <div>
+                        <label for="issue-category" class="block text-sm font-medium text-gray-700 mb-1">Category of Issue</label>
+                        <select id="issue-category" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 bg-white">
+                            <option value="" disabled selected>Select a category...</option>
+                            <option value="infrastructure">Infrastructure (Roads, Lights, Water)</option>
+                            <option value="sanitation">Sanitation (Garbage, Drainage, Pollution)</option>
+                            <option value="safety">Public Safety (Lasing, Hazards, Vandalism)</option>
+                            <option value="noise">Noise/Disturbance</option>
+                            <option value="others">Other Community Concern</option>
+                        </select>
+                    </div>
+
+                    <!-- Location Input -->
+                    <div>
+                        <label for="report-location" class="block text-sm font-medium text-gray-700 mb-1">Specific Location / Area</label>
+                        <input id="report-location" type="text" placeholder="e.g., Corner of P. Gomez and Rizal Ave" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">
+                        <p class="text-xs text-gray-500 mt-1">This is mandatory to help us find the issue quickly.</p>
+                    </div>
+
+                    <!-- Description Textarea -->
+                    <div>
+                        <label for="report-description" class="block text-sm font-medium text-gray-700 mb-1">Detailed Description</label>
+                        <textarea id="report-description" placeholder="Describe the problem and when you noticed it." rows="3" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"></textarea>
+                    </div>
+                    
+                    <!-- Photo Evidence (REQUIRED) -->
+                    <div>
+                        <label for="photo-evidence" class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                            Photo Evidence <span class="text-red-500 text-lg ml-1">*</span>
+                        </label>
+                        <input id="photo-evidence" type="file" required accept="image/*" class="w-full border p-3 bg-gray-50 rounded-lg text-sm">
+                        <p class="text-xs text-gray-500 mt-1">Please upload one clear photo of the issue. (Required)</p>
+                    </div>
+
+                    <button type="submit" class="w-full bg-red-600 text-white p-3 rounded-lg font-bold shadow-lg hover:bg-red-700 transition duration-300 flex items-center justify-center space-x-2">
+                        <i class="fas fa-paper-plane mr-2"></i> Submit Report
+                    </button>
+                </form>
+                
+                <!-- Bottom Back Link -->
+                <div class="mt-8 text-center border-t pt-4">
+                    <a href="{{ url_for('home') }}" class="text-sm text-gray-500 hover:text-gray-800 inline-flex items-center">
+                        <i class="fas fa-arrow-left mr-2"></i> Back to Home
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MajayHi</title>
+    <!-- Tailwind CSS and Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Page Styling -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .page { display: none; }
+        .page.active { display: block; }
+        .hero-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .hero-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                        0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- ========================================================= -->
+    <!-- 🧭 TOP NAVIGATION BAR -->
+    <!-- ========================================================= -->
+    <header class="bg-blue-600 text-white shadow-xl sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <button onclick="navigate('home')" class="text-xl md:text-2xl font-bold hover:text-blue-200 transition">
+                    Brgy. San Roque Portal
+                </button>
+                <div id="nav-links" class="hidden md:flex space-x-4 text-sm font-medium">
+                    <button onclick="navigate('view-reports')" class="hover:text-blue-200 transition">
+                        <i class="fas fa-list-alt mr-1"></i> Public Reports
+                    </button>
+                    <button id="nav-submit-report-link" onclick="navigate('submit-report')" class="hover:text-blue-200 transition">
+                        <i class="fas fa-bullhorn mr-1"></i> Submit Report
+                    </button>
+                    <button id="nav-admin-link" onclick="navigate('admin-dashboard')" class="hover:text-yellow-300 transition hidden">
+                        <i class="fas fa-chart-line mr-1"></i> Admin Dashboard
+                    </button>
+                </div>
+            </div>
+
+            <!-- Login/Logout Status -->
+            <div id="auth-controls" class="flex items-center space-x-3">
+                <div id="logged-in-status" class="hidden text-right text-xs">
+                    <p class="font-semibold" id="header-username"></p>
+                    <p class="text-blue-200 text-xs" id="header-role"></p>
+                </div>
+                <button id="auth-button" onclick="navigate('auth')" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-bold shadow-md hover:bg-gray-100 transition flex items-center">
+                    <i class="fas fa-sign-in-alt mr-2"></i> Log In
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 p-4 md:p-8 overflow-auto">
+        <div class="max-w-7xl mx-auto">
+
+            <div id="auth-page" class="page max-w-lg mx-auto bg-white p-8 rounded-xl shadow-2xl">
+                <!-- Back Button -->
+                <button onclick="navigate('home')" class="text-sm text-blue-600 hover:text-blue-800 flex items-center mb-6 font-medium">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Home
+                </button>
+                
+                <h2 id="auth-header" class="text-3xl font-bold text-gray-800 mb-6 text-center">Account Access</h2>
+                
+                <!-- Toggle between Login and Sign Up -->
+                <div id="auth-tabs" class="flex justify-center mb-6">
+                    <button id="login-tab" onclick="showAuthForm('login')" class="px-4 py-2 font-semibold rounded-l-lg border-b-2 border-green-600 text-green-600 bg-green-50">Log In</button>
+                    <button id="signup-tab" onclick="showAuthForm('signup')" class="px-4 py-2 font-semibold rounded-r-lg border-b-2 border-gray-300 text-gray-500 hover:text-green-600 hover:border-green-300 transition">Sign Up</button>
+                </div>
+
+                <!-- Auth Status Display (for logged-in users) -->
+                <div id="auth-status" class="hidden text-center p-6 bg-green-50 rounded-xl border border-green-200">
+                    <p class="text-lg font-semibold text-green-700 mb-4">Welcome Back!</p>
+                    <p class="text-sm text-gray-700">Logged in as: <span id="user-email" class="font-bold block mt-1"></span></p>
+                    <p class="text-xs text-gray-500 mt-2">Your ID: <span id="user-id-display" class="font-mono text-xs block mt-1 p-2 bg-white rounded-md shadow-inner overflow-x-auto"></span></p>
+                    <button onclick="handleLogout()" class="mt-6 w-full bg-red-500 text-white p-3 rounded-lg font-bold hover:bg-red-600 transition">Log Out</button>
+                </div>
+                
+                <!-- Login Form -->
+                <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+                    <input id="login-email" type="text" placeholder="Username (Try 'admin' or 'user')" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                    <input id="login-password" type="password" placeholder="Password (Try 'password')" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                    <button type="submit" id="login-button" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold hover:bg-green-700 transition flex items-center justify-center">
+                        Log In
+                    </button>
+                    <p id="login-error" class="text-sm text-red-500 text-center hidden p-2 bg-red-100 rounded"></p>
+                </form>
+
+                <!-- Sign Up Form (Initially hidden) -->
+                <form id="signup-form" onsubmit="handleSignUp(event)" class="space-y-4 hidden">
+                    <input id="signup-email" type="text" placeholder="New Username" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                    <input id="signup-password" type="password" placeholder="Password (Min 6 characters)" required minlength="6" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                    <input id="signup-confirm-password" type="password" placeholder="Confirm Password" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                    <button type="submit" id="signup-button" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold hover:bg-green-700 transition flex items-center justify-center">
+                        Sign Up
+                    </button>
+                    <p id="signup-error" class="text-sm text-red-500 text-center hidden p-2 bg-red-100 rounded"></p>
+                </form>
+
+                <!-- Bottom Back Link -->
+                <div class="mt-6 text-center border-t pt-4">
+                    <button onclick="navigate('home')" class="text-sm text-gray-500 hover:text-gray-800 flex items-center mx-auto">
+                        <i class="fas fa-arrow-left mr-2"></i> Back to Home
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</body>
+</html>

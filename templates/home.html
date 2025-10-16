@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MajayHi</title>
+    <!-- Tailwind CSS and Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+
+    <!-- Page Styling -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .hero-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .hero-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                        0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- ========================================================= -->
+    <!-- 🧭 TOP NAVIGATION BAR -->
+    <!-- ========================================================= -->
+    <header class="bg-blue-600 text-white shadow-xl sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="h-10 w-10 object-contain">
+                <a href="{{ url_for('home') }}" class="text-xl md:text-2xl font-bold hover:text-blue-200 transition">
+                    Brgy. San Francisco Portal
+                </a>
+                <!-- Navigation Links based on login status -->
+                <div id="nav-links" class="hidden md:flex space-x-4 text-sm font-medium">
+                    <a href="{{ url_for('reports') }}" class="hover:text-blue-200 transition">
+                        <i class="fas fa-list-alt mr-1"></i> Public Reports
+                    </a>
+                    {% if session.user and session.user.role == 'admin' %}
+                        <a href="{{ url_for('admin') }}" class="hover:text-yellow-300 transition">
+                            <i class="fas fa-chart-line mr-1"></i> Admin Dashboard
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('report') }}" class="hover:text-blue-200 transition">
+                            <i class="fas fa-bullhorn mr-1"></i> Submit Report
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Login/Logout Status -->
+            <div id="auth-controls" class="flex items-center space-x-3">
+                {% if session.user %}
+                    <div class="text-right text-xs">
+                        <p class="font-semibold">{{ session.user.username }}</p>
+                        <p class="text-blue-200 text-xs">{{ session.user.role|capitalize }}</p>
+                    </div>
+                    <a href="{{ url_for('logout') }}" class="bg-red-500 text-white px-4 py-2 rounded-lg font-bold shadow-md hover:bg-red-600 transition flex items-center no-underline">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Log Out
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-bold shadow-md hover:bg-gray-100 transition flex items-center no-underline">
+                        <i class="fas fa-sign-in-alt mr-2"></i> Log In
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 p-4 md:p-8 overflow-auto">
+        <div class="max-w-7xl mx-auto">
+
+                <!-- 1. Home Page (Default View) -->
+            <div id="home-page">
+                <div class="text-center my-8 md:my-12">
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-gray-800 mb-2">Welcome to Your Portal!</h2>
+                    <p class="text-lg text-gray-500">Quickly submit reports or check the status of community issues.</p>
+                </div>
+
+                <!-- Introduction Section -->
+                <div class="max-w-5xl mx-auto bg-white p-8 rounded-xl shadow-lg mt-8 text-left">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Welcome to the Brgy. San Francisco Community Portal</h3>
+                    <p class="text-gray-600 mb-6">This platform serves as a direct link between the residents of Barangay San Francisco and our local officials. We are dedicated to enhancing our community by providing a modern, efficient way to communicate concerns, report issues, and stay updated on local matters. Our goal is to foster a more responsive, transparent, and collaborative barangay for everyone.</p>
+
+                    <div class="grid md:grid-cols-2 gap-8 border-t pt-6">
+                        <div>
+                            <h4 class="text-xl font-bold text-gray-700 mb-3">About Our System</h4>
+                            <p class="text-gray-600">The Community Portal is designed for ease of use. Residents can quickly submit reports on issues such as infrastructure problems, sanitation concerns, or public safety hazards. Each report can be tracked publicly, ensuring transparency in how issues are addressed by the barangay council. This system helps us prioritize and resolve community problems faster and more effectively.</p>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold text-gray-700 mb-3">About Majayjay, Laguna</h4>
+                            <p class="text-gray-600">Our beloved town of Majayjay, located at the foot of Mount Banahaw in the province of Laguna, is rich in history and natural beauty. It is home to the historic St. Gregory the Great Parish Church, one of the oldest Roman Catholic churches in the Philippines, and natural wonders like the majestic Taytay Falls. We are proud of our heritage and strive to maintain the peace and beauty of our community through active resident participation.</p>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                <div id="home-cards-container" class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mt-10 max-w-5xl mx-auto">
+                    
+                    <!-- Card 1: Submit a Report (Hidden for Admin) -->
+                    <a href="{{ url_for('report') }}" id="home-card-submit" class="hero-card bg-white p-6 md:p-8 rounded-xl shadow-lg border-t-4 border-red-500 flex flex-col items-center text-center no-underline">
+                        <i class="fas fa-bullhorn text-5xl text-red-500 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-3 text-gray-700">Submit a New Report</h3>
+                        <p class="text-gray-500 text-sm mb-4 flex-1">Is there a problem? Quickly report issues like broken lights, garbage, or road damage.</p>
+                    </a>
+                    
+                    <!-- Card 2: View Community Reports -->
+                    <a href="{{ url_for('reports') }}" class="hero-card bg-white p-6 md:p-8 rounded-xl shadow-lg border-t-4 border-blue-500 flex flex-col items-center text-center no-underline">
+                        <i class="fas fa-list-alt text-5xl text-blue-500 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-3 text-gray-700">View Public Reports</h3>
+                        <p class="text-gray-500 text-sm mb-4 flex-1">See what other residents have reported and check the status of pending issues.</p>
+                    </a>
+
+                    <!-- Card 3: Log In / Sign Up -->
+                    <a href="{{ url_for('login') }}" class="hero-card bg-white p-6 md:p-8 rounded-xl shadow-lg border-t-4 border-green-500 flex flex-col items-center text-center no-underline">
+                        <i class="fas fa-user-circle text-5xl text-green-500 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-3 text-gray-700">My Account (Login)</h3>
+                        <p class="text-gray-500 text-sm mb-4 flex-1">Log in for private updates, to manage your reports, or to access admin features.</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
