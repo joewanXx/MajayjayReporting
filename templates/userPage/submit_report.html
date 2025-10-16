@@ -40,8 +40,9 @@
     <header class="bg-blue-600 text-white shadow-xl sticky top-0 z-30">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-4">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="h-10 w-10 object-contain">
                 <button onclick="navigate('home')" class="text-xl md:text-2xl font-bold hover:text-blue-200 transition">
-                    Brgy. San Roque Portal
+                    MajayHi Portal
                 </button>
                 <div id="nav-links" class="hidden md:flex space-x-4 text-sm font-medium">
                     <button onclick="navigate('view-reports')" class="hover:text-blue-200 transition">
@@ -58,13 +59,19 @@
 
             <!-- Login/Logout Status -->
             <div id="auth-controls" class="flex items-center space-x-3">
-                <div id="logged-in-status" class="hidden text-right text-xs">
-                    <p class="font-semibold" id="header-username"></p>
-                    <p class="text-blue-200 text-xs" id="header-role"></p>
-                </div>
-                <button id="auth-button" onclick="navigate('auth')" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-bold shadow-md hover:bg-gray-100 transition flex items-center">
-                    <i class="fas fa-sign-in-alt mr-2"></i> Log In
-                </button>
+                {% if session.user %}
+                    <div class="text-right text-xs">
+                        <p class="font-semibold">{{ session.user.username }}</p>
+                        <p class="text-blue-200 text-xs">{{ session.user.role|capitalize }}</p>
+                    </div>
+                    <a href="{{ url_for('logout') }}" class="bg-red-500 text-white px-4 py-2 rounded-lg font-bold shadow-md hover:bg-red-600 transition flex items-center no-underline">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Log Out
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-bold shadow-md hover:bg-gray-100 transition flex items-center no-underline">
+                        <i class="fas fa-sign-in-alt mr-2"></i> Log In
+                    </a>
+                {% endif %}
             </div>
         </div>
     </header>

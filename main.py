@@ -29,6 +29,11 @@ def add_security_headers(response):
 
 @app.route('/')
 def home():
+    # home page ng administrator
+    if 'user' in session and session['user']['role'] == 'admin':
+        return render_template('adminPage/admin_home.html', session=session)
+    
+    # pag hindi naka login as admin, home page ng resident
     return render_template('home.html', current_page='home', session=session)
 
 @app.route('/login', methods=['GET', 'POST'])

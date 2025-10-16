@@ -39,7 +39,7 @@
             <div class="flex items-center space-x-4">
                 <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="h-10 w-10 object-contain">
                 <a href="{{ url_for('home') }}" class="text-xl md:text-2xl font-bold hover:text-blue-200 transition">
-                    MajayHi Portal
+                    Brgy. San Francisco Portal
                 </a>
                 <!-- Navigation Links based on login status -->
                 <div id="nav-links" class="hidden md:flex space-x-4 text-sm font-medium">
@@ -51,9 +51,9 @@
                             <i class="fas fa-chart-line mr-1"></i> Admin Dashboard
                         </a>
                     {% else %}
-                        <a href="{{ url_for('report') }}" class="hover:text-blue-200 transition">
+                        <!-- <a href="{{ url_for('report') }}" class="hover:text-blue-200 transition">
                             <i class="fas fa-bullhorn mr-1"></i> Submit Report
-                        </a>
+                        </a> -->
                     {% endif %}
                 </div>
             </div>
@@ -95,7 +95,7 @@
                         </div>
                     {% endif %}
                 {% endwith %}
-
+                
                 <!-- 1. Home Page (Default View) -->
             <div id="home-page">
                 <div class="text-center my-8 md:my-12">
@@ -124,10 +124,10 @@
                 <div id="home-cards-container" class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mt-10 max-w-5xl mx-auto">
                     
                     <!-- Card 1: Submit a Report (Hidden for Admin) -->
-                    <a href="{{ url_for('report') }}" id="home-card-submit" class="hero-card bg-white p-6 md:p-8 rounded-xl shadow-lg border-t-4 border-red-500 flex flex-col items-center text-center no-underline">
-                        <i class="fas fa-bullhorn text-5xl text-red-500 mb-4"></i>
-                        <h3 class="text-xl font-bold mb-3 text-gray-700">Submit a New Report</h3>
-                        <p class="text-gray-500 text-sm mb-4 flex-1">Is there a problem? Quickly report issues like broken lights, garbage, or road damage.</p>
+                    <a href="{{ url_for('admin') }}" id="home-card-submit" class="hero-card bg-white p-6 md:p-8 rounded-xl shadow-lg border-t-4 border-yellow-500 flex flex-col items-center text-center no-underline">
+                        <i class="fas fa-chart-line text-5xl text-yellow-500 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-3 text-gray-700">Admin Dashboard</h3>
+                        <p class="text-gray-500 text-sm mb-4 flex-1">Manage reports and user accounts efficiently.</p>
                     </a>
                     
                     <!-- Card 2: View Community Reports -->
