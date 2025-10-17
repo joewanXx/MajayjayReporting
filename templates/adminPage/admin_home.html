@@ -138,10 +138,16 @@
                     </a>
 
                     <!-- Card 3: Log In / Sign Up -->
-                    <a href="{{ url_for('login') }}" class="hero-card bg-white p-6 md:p-8 rounded-xl shadow-lg border-t-4 border-green-500 flex flex-col items-center text-center no-underline">
+                    <a href="{% if session.user %}{{ url_for('account') }}{% else %}{{ url_for('login') }}{% endif %}" class="hero-card bg-white p-6 md:p-8 rounded-xl shadow-lg border-t-4 border-green-500 flex flex-col items-center text-center no-underline">
                         <i class="fas fa-user-circle text-5xl text-green-500 mb-4"></i>
-                        <h3 class="text-xl font-bold mb-3 text-gray-700">My Account (Login)</h3>
-                        <p class="text-gray-500 text-sm mb-4 flex-1">Log in for private updates, to manage your reports, or to access admin features.</p>
+                        <h3 class="text-xl font-bold mb-3 text-gray-700">
+                            {% if session.user %}
+                                My Account
+                            {% else %}
+                                My Account (Login)
+                            {% endif %}
+                        </h3>
+                        <p class="text-gray-500 text-sm mb-4 flex-1">View your account details or log in to access features.</p>
                     </a>
                 </div>
             </div>

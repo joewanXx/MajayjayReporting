@@ -1,0 +1,199 @@
+from flask import Flask, jsonify, render_template, request, redirect, url_for, session, flash
+import os
+import sqlite3
+import time
+
+app = Flask(__name__)
+app.secret_key = "kamoteng-kahoy-12345"  # For session security
+
+
+# =====================================================
+# DATABASE CONNECTION
+# =====================================================
+def get_db_connection():
+    conn = sqlite3.connect('brgy_portal.db')
+    conn.row_factory = sqlite3.Row  # Enables dictionary-like access
+    return conn
+
+
+# =====================================================
+# SECURITY HEADERS
+# =====================================================
+@app.after_request
+def add_security_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com "
+        "https://fonts.gstatic.com https://cdn.tailwindcss.com 'unsafe-inline' 'unsafe-eval'"
+    )
+    return response
+
+
+# =====================================================
+# ROUTES
+# =====================================================
+
+@app.route('/')
+def home():
+    # Redirect admin to their dashboard automatically
+    if 'user' in session and session['user']['role'] == 'admin':
+        return redirect(url_for('admin'))
+    return render_template('home.html', current_page='home', session=session)
+
+
+# ---------------- LOGIN ----------------
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        email = f"{username.lower().strip()}@brgyportal.io"
+
+        conn = get_db_connection()
+        user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+        conn.close()
+
+        if user and user['password'] == password:
+            session['user'] = {
+                'id': user['id'],
+                'uid': user['uid'],
+                'username': user['username'],
+                'email': user['email'],
+                'role': user['role']
+            }
+            flash('Login successful! Welcome back.', 'success')
+            return redirect(url_for('admin' if user['role'] == 'admin' else 'home'))
+        else:
+            flash('Invalid username or password. Please try again.', 'error')
+            return redirect(url_for('login'))
+
+    return render_template('auth/login.html', current_page='auth', session=session)
+
+
+# ---------------- SIGNUP ----------------
+@app.route('/signup', methods=['POST'])
+def signup():
+    username = request.form['username']
+    password = request.form['password']
+    confirm_password = request.form['confirm_password']
+    email = f"{username.lower().strip()}@brgyportal.io"
+
+    if password != confirm_password:
+        flash('Passwords do not match.', 'error')
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    existing_user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+
+    if existing_user:
+        conn.close()
+        flash('This username is already taken.', 'error')
+        return redirect(url_for('login'))
+
+    uid = f"user-uid-{int(time.time())}"
+    conn.execute("INSERT INTO users (uid, username, email, password, role) VALUES (?, ?, ?, ?, ?)",
+                 (uid, username, email, password, 'resident'))
+    conn.commit()
+    conn.close()
+
+    flash('Account created successfully! Please log in.', 'success')
+    return redirect(url_for('login'))
+
+
+# ---------------- LOGOUT ----------------
+@app.route('/logout')
+def logout():
+    session.pop('user', None)
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('home'))
+
+
+# ---------------- REPORT PAGE ----------------
+@app.route('/report')
+def report():
+    return render_template('userPage/submit_report.html', current_page='submit-report', session=session)
+
+
+# ---------------- REPORTS PAGE ----------------
+@app.route('/reports')
+def reports():
+    conn = get_db_connection()
+    reports = conn.execute("SELECT * FROM reports ORDER BY id DESC").fetchall()
+    conn.close()
+    return render_template('reports.html', current_page='view-reports', session=session, reports=reports)
+
+
+# ---------------- ADMIN DASHBOARD ----------------
+@app.route('/admin')
+def admin():
+    if 'user' not in session or session['user']['role'] != 'admin':
+        flash('You must be an administrator to access this page.', 'error')
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    reports = conn.execute("SELECT * FROM reports ORDER BY id DESC").fetchall()
+    users = conn.execute("SELECT * FROM users").fetchall()
+    conn.close()
+
+    return render_template('adminPage/admin_dashboard.html',
+                           current_page='admin-dashboard',
+                           session=session,
+                           reports=reports,
+                           users=users)
+
+
+# ---------------- UPDATE REPORT (Admin) ----------------
+@app.route('/admin/update_report', methods=['POST'])
+def update_report():
+    if 'user' not in session or session['user']['role'] != 'admin':
+        flash('Unauthorized action.', 'error')
+        return redirect(url_for('login'))
+
+    report_id = request.form.get('report_id')
+    new_status = request.form.get('status')
+    new_response = request.form.get('response')
+
+    conn = get_db_connection()
+    conn.execute("UPDATE reports SET status = ?, response = ? WHERE report_id = ?",
+                 (new_status, new_response, report_id))
+    conn.commit()
+    conn.close()
+
+    flash(f"Report '{report_id}' has been updated successfully.", 'success')
+    return redirect(url_for('admin'))
+
+
+# ---------------- SUBMIT REPORT (Resident) ----------------
+@app.route('/submit_report', methods=['POST'])
+def submit_report():
+    reporter = request.form.get('reporter') or 'Anonymous'
+    title = request.form.get('title')
+    category = request.form.get('category')
+    location = request.form.get('location')
+    description = request.form.get('description')
+
+    report_id = f"R-{int(time.time())}"
+    user_id = session['user']['id'] if 'user' in session else None
+
+    conn = get_db_connection()
+    conn.execute("""
+        INSERT INTO reports (report_id, reporter, title, category, location, description, status, date_submitted, user_id)
+        VALUES (?, ?, ?, ?, ?, ?, 'New', DATE('now'), ?)
+    """, (report_id, reporter, title, category, location, description, user_id))
+    conn.commit()
+    conn.close()
+
+    flash('Report submitted successfully!', 'success')
+    return redirect(url_for('reports'))
+
+
+# =====================================================
+# MAIN ENTRY POINT
+# =====================================================
+if __name__ == '__main__':
+    # Auto-create DB if missing (optional)
+    if not os.path.exists('brgy_portal.db'):
+        os.system('sqlite3 brgy_portal.db < database.sql')
+    app.run(debug=True)

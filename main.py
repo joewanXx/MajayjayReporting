@@ -92,13 +92,22 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('home'))
 
+@app.route('/account')
+def account():
+    # Protect the route, only logged-in users can see it
+    if 'user' not in session:
+        flash('You need to be logged in to see your account page.', 'info')
+        return redirect(url_for('login'))
+    
+    return render_template('userPage/account.html', current_page='account', session=session)
+
 @app.route('/report')
 def report():
     return render_template('userPage/submit_report.html', current_page='submit-report', session=session)
 
 @app.route('/reports')
 def reports():
-    return render_template('reports.html', current_page='view-reports', session=session)
+    return render_template('publicRep/view_reports.html', current_page='view-reports', session=session, reports=mock_reports)
 
 @app.route('/admin')
 def admin():

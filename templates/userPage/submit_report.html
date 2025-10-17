@@ -41,9 +41,9 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-4">
                 <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="h-10 w-10 object-contain">
-                <button onclick="navigate('home')" class="text-xl md:text-2xl font-bold hover:text-blue-200 transition">
+                <a href="{{ url_for('home') }}" class="text-xl md:text-2xl font-bold hover:text-blue-200 transition">
                     MajayHi Portal
-                </button>
+                </a>
                 <div id="nav-links" class="hidden md:flex space-x-4 text-sm font-medium">
                     <button onclick="navigate('view-reports')" class="hover:text-blue-200 transition">
                         <i class="fas fa-list-alt mr-1"></i> Public Reports
